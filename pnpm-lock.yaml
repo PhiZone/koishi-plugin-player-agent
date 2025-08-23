@@ -11,9 +11,6 @@ importers:
       koishi:
         specifier: ^4.18.7
         version: 4.18.8(@cordisjs/plugin-http@0.6.3(cordis@3.18.1))(cordis@3.18.1)
-      node-napcat-ts:
-        specifier: ^0.4.15
-        version: 0.4.15
       socket.io-client:
         specifier: ^4.8.1
         version: 4.8.1
@@ -801,11 +798,6 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  isomorphic-ws@5.0.0:
-    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
-    peerDependencies:
-      ws: '*'
-
   js-yaml@4.1.0:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
     hasBin: true
@@ -906,20 +898,12 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@5.1.5:
-    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
-    engines: {node: ^18 || >=20}
-    hasBin: true
-
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
-
-  node-napcat-ts@0.4.15:
-    resolution: {integrity: sha512-XEiwDV4lzTDD6Wz8yOJWabIjOirkPTc7ZyJdwecMxkerbW+d7HZ5rqRwR5EH2tuy/XUOBoUMwnBLqVdtFhYWvQ==}
 
   ns-require@1.1.4:
     resolution: {integrity: sha512-Zk25pQj4u5i6DS0vaNO5aSSXewybVqqVVjz8AOxFy9DNPtmu3jlexMz6kUXLV2oB+X6iQeAnHXSzj5Qz/IeDaQ==}
@@ -2136,10 +2120,6 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isomorphic-ws@5.0.0(ws@8.18.3):
-    dependencies:
-      ws: 8.18.3
-
   js-yaml@4.1.0:
     dependencies:
       argparse: 2.0.1
@@ -2269,20 +2249,9 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@5.1.5: {}
-
   natural-compare@1.4.0: {}
 
   negotiator@0.6.3: {}
-
-  node-napcat-ts@0.4.15:
-    dependencies:
-      isomorphic-ws: 5.0.0(ws@8.18.3)
-      nanoid: 5.1.5
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   ns-require@1.1.4: {}
 

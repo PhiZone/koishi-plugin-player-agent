@@ -1,5 +1,5 @@
 import { Context, h, Schema, Session } from 'koishi';
-import { NCWebsocket } from 'node-napcat-ts';
+import { OneBotBot } from 'koishi-plugin-adapter-onebot';
 import { Room, Run, RunConfig, RunInput } from './types';
 import {
   getConfigSummary,
@@ -10,6 +10,9 @@ import {
 } from './utils';
 import { Client } from './client';
 import { io } from 'socket.io-client';
+import { promises as fs } from 'fs';
+import path from 'path';
+import os from 'os';
 
 declare module 'koishi' {
   interface Tables {
@@ -322,14 +325,15 @@ export const apply = (ctx: Context) => {
     'configSummary.chartFlipping.unknown': 'unknown'
   });
 
-  const getFileUrl = async (file?: { file_id: string; group_id: number | undefined }) => {
-    return !file
-      ? undefined
-      : (
-          await (file.group_id
-            ? napcat.get_group_file_url(file)
-            : napcat.get_private_file_url(file))
-        ).url;
+  const getFileUrl = async (
+    file?: { fileId: string; chatId: string; isPrivate: boolean },
+    session?: Session<never, never, Context>
+  ) => {
+    if (!file || !session) return;
+    const { fileId, chatId, isPrivate } = file;
+    return await (isPrivate
+      ? (session.bot as OneBotBot<Context>).internal.getPrivateFileUrl(chatId, fileId)
+      : (session.bot as OneBotBot<Context>).internal.getGroupFileUrl(chatId, fileId, 0));
   };
 
   const validateSocket = async (target: string) => {
@@ -359,26 +363,13 @@ export const apply = (ctx: Context) => {
     {
       expectRespack: boolean;
       input: RunInput<{
-        file: string;
-        file_id: string;
-        group_id: number | undefined;
+        fileName: string;
+        fileId: string;
+        chatId: string;
+        isPrivate: boolean;
       }>;
     }
   > = {};
-
-  const napcat = new NCWebsocket(
-    {
-      baseUrl: ctx.config.ncWebsocket,
-      accessToken: ctx.config.ncSecret,
-      throwPromise: true,
-      reconnection: {
-        enable: true,
-        attempts: 10,
-        delay: 5000
-      }
-    },
-    false
-  );
 
   const client = new Client(ctx.config.apiBase, ctx.config.apiSecret);
 
@@ -415,19 +406,21 @@ export const apply = (ctx: Context) => {
     const element = session.event.message.elements.at(0);
     if (!pendingRuns[user] || element?.type !== 'file') return;
     const isPrivate = session.event.channel.type === 1;
-    const chatId = parseInt(session.event.channel.id);
+    const chatId = session.event.channel.id;
+    console.log(element);
     const file = {
-      file: element.attrs.file,
-      file_id: element.attrs.fileId,
-      group_id: isPrivate ? undefined : chatId
+      fileName: element.attrs.fileName,
+      fileId: element.attrs.fileId,
+      chatId,
+      isPrivate
     };
     if (pendingRuns[user].expectRespack) {
       pendingRuns[user].input.respack = file;
       pendingRuns[user].expectRespack = false;
-      await session.send(session.text('respackSet', [element.attrs.file]));
+      await session.send(session.text('respackSet', [file.fileName]));
     } else {
       pendingRuns[user].input.chartFiles.push(file);
-      await session.send(session.text('chartFileAdded', [element.attrs.file]));
+      await session.send(session.text('chartFileAdded', [file.fileName]));
     }
   });
 
@@ -481,9 +474,11 @@ export const apply = (ctx: Context) => {
         pendingRuns[user].expectRespack = false;
         return;
       }
-      const chartFilesText = pendingRuns[user].input.chartFiles.map((file) => file.file).join(', ');
+      const chartFilesText = pendingRuns[user].input.chartFiles
+        .map((file) => file.fileName)
+        .join(', ');
       const respackText = pendingRuns[user].input.respack
-        ? pendingRuns[user].input.respack.file
+        ? pendingRuns[user].input.respack.fileName
         : session.text('defaultRespack');
       await session.send(
         session.text('requestSummary', [
@@ -494,9 +489,9 @@ export const apply = (ctx: Context) => {
       );
       const input = {
         chartFiles: await Promise.all(
-          pendingRuns[user].input.chartFiles.map((file) => getFileUrl(file))
+          pendingRuns[user].input.chartFiles.map((file) => getFileUrl(file, session))
         ),
-        respack: await getFileUrl(pendingRuns[user].input.respack)
+        respack: await getFileUrl(pendingRuns[user].input.respack, session)
       };
       const run: Run = {
         input,
@@ -732,10 +727,6 @@ export const apply = (ctx: Context) => {
       await ctx.database.set('pzpAgentConfig', { user }, data);
     });
 
-  napcat.connect().then(() => {
-    ctx.logger.info('Connected to NapCat WebSocket');
-  });
-
   const socket = io(ctx.config.apiWebsocket);
   socket.on('connect', () => {
     ctx.logger.info('Connected to API WebSocket');
@@ -776,17 +767,29 @@ export const apply = (ctx: Context) => {
         const isPrivate = event.channel.type === 1;
         const chatId = parseInt(event.channel.id);
         for (const file of run.outputFiles) {
-          await (isPrivate
-            ? napcat.upload_private_file({
-                user_id: chatId,
-                name: file.name,
-                file: file.url
-              })
-            : napcat.upload_group_file({
-                group_id: chatId,
-                name: file.name,
-                file: file.url
-              }));
+          const tempDir = os.tmpdir();
+          const tempFilePath = path.join(tempDir, Date.now().toString());
+          const response = await fetch(file.url);
+          if (!response.ok) throw new Error(`Failed to download file: ${file.url}`);
+          const buffer = Buffer.from(await response.arrayBuffer());
+          await fs.writeFile(tempFilePath, buffer);
+          try {
+            await (isPrivate
+              ? (session.bot as OneBotBot<Context>).internal.uploadPrivateFile(
+                  chatId,
+                  tempFilePath,
+                  file.name
+                )
+              : (session.bot as OneBotBot<Context>).internal.uploadGroupFile(
+                  chatId,
+                  tempFilePath,
+                  file.name
+                ));
+          } catch (error) {
+            ctx.logger.error('Failed to upload file:', error);
+          } finally {
+            await fs.unlink(tempFilePath);
+          }
         }
       } else {
         await session.send(
@@ -803,6 +806,5 @@ export const apply = (ctx: Context) => {
 
   ctx.on('dispose', () => {
     socket.disconnect();
-    napcat.disconnect();
   });
 };

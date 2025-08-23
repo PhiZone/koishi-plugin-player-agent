@@ -64,7 +64,10 @@ export const setNestedProperty = (obj: unknown, path: string, value: unknown): v
 
 export const getConfigSummary = (config: RunConfig, session: Session, full = true) => {
   return (
-    (full ? session.text('configSummary.title') + `\n\n${session.text('configSummary.user', [config.user])}` : '') +
+    (full
+      ? session.text('configSummary.title') +
+        `\n\n${session.text('configSummary.user', [config.user])}`
+      : '') +
     `\n\n${session.text('configSummary.mediaOptions', [getMediaOptions(config.mediaOptions, session)])}` +
     `\n\n${session.text('configSummary.preferences', [getPreferences(config.preferences, session)])}` +
     `\n\n${session.text('configSummary.toggles', [getToggles(config.toggles, session)])}`
@@ -85,19 +88,20 @@ export const getMediaOptions = (mediaOptions: MediaOptions, session: Session) =>
 
 export const getPreferences = (preferences: Preferences, session: Session) => {
   const colon = session.text('configSummary.propertyColon');
-  const chartFlippingText = preferences.chartFlipping === 0
-    ? session.text('configSummary.chartFlipping.off')
-    : preferences.chartFlipping === 1
-      ? session.text('configSummary.chartFlipping.horizontal')
-      : preferences.chartFlipping === 2
-        ? session.text('configSummary.chartFlipping.vertical')
-        : preferences.chartFlipping === 3
-          ? session.text('configSummary.chartFlipping.both')
-          : session.text('configSummary.chartFlipping.unknown');
-  
+  const chartFlippingText =
+    preferences.chartFlipping === 0
+      ? session.text('configSummary.chartFlipping.off')
+      : preferences.chartFlipping === 1
+        ? session.text('configSummary.chartFlipping.horizontal')
+        : preferences.chartFlipping === 2
+          ? session.text('configSummary.chartFlipping.vertical')
+          : preferences.chartFlipping === 3
+            ? session.text('configSummary.chartFlipping.both')
+            : session.text('configSummary.chartFlipping.unknown');
+
   const enabledText = session.text('configSummary.enabled');
   const disabledText = session.text('configSummary.disabled');
-  
+
   return (
     `\n· ${session.text('config.preferences.backgroundBlur')}${colon}${preferences.backgroundBlur}` +
     `\n· ${session.text('config.preferences.backgroundLuminance')}${colon}${preferences.backgroundLuminance}` +
