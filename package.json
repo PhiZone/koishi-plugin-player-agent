@@ -1,14 +1,22 @@
 {
-  "name": "koishi-plugin-phizone-player-agent",
+  "name": "@phizone/koishi-plugin-player-agent",
   "description": "Koishi plugin for PhiZone Player automation.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
     "dist"
   ],
-  "license": "MIT",
+  "author": "Naptie <naptie@qq.com>",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PhiZone/koishi-plugin-player-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PhiZone/koishi-plugin-player-agent/issues"
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint .",
@@ -17,8 +25,23 @@
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "phizone",
+    "phigros",
+    "rhythm-games"
   ],
+  "koishi": {
+    "description": {
+      "en": "Koishi plugin for PhiZone Player automation.",
+      "zh": "用于 PhiZone Player 自动化的 Koishi 插件。"
+    },
+    "service": {
+      "required": [
+        "database",
+        "adapter-onebot"
+      ]
+    }
+  },
   "peerDependencies": {
     "koishi": "^4.18.7"
   },
@@ -32,6 +55,7 @@
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.3.0",
+    "koishi-plugin-adapter-onebot": "^6.8.0",
     "prettier": "^3.6.2",
     "typescript-eslint": "^8.40.0"
   }

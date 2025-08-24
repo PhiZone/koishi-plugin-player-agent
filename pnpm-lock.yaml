@@ -33,6 +33,9 @@ importers:
       globals:
         specifier: ^16.3.0
         version: 16.3.0
+      koishi-plugin-adapter-onebot:
+        specifier: ^6.8.0
+        version: 6.8.0(koishi@4.18.8(@cordisjs/plugin-http@0.6.3(cordis@3.18.1))(cordis@3.18.1))
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -836,6 +839,11 @@ packages:
     resolution: {integrity: sha512-+CCssgnrWKx9aI3OeZwroa/ckG4JICxvIFnSiOUyl2Uv+UTI+xIw0FfFrWS7cQFpoePpr9o8csss7KzsTzNL8Q==}
     engines: {node: ^4.8.4 || ^6.10.1 || ^7.10.1 || >= 8.1.4}
 
+  koishi-plugin-adapter-onebot@6.8.0:
+    resolution: {integrity: sha512-jFPZcINZSlWyKab3xcN7YGUCjyhVfeswgfdmUllvTA4nHO3udPRs9VNmaR7wLfcFSFZYrrJwZvM/t0Aak991sw==}
+    peerDependencies:
+      koishi: ^4.18.6
+
   koishi@4.18.8:
     resolution: {integrity: sha512-+bTUCy9bktd1NfHhx+D4k7K65ZTg0XjnJXkdsxBxpM5/VbX+ZPPKhV79G9AO58VmMGbFd0rewWPaaH05Zx/HAg==}
     hasBin: true
@@ -981,6 +989,9 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
+
+  qface@1.4.1:
+    resolution: {integrity: sha512-52qX9qdiDFd53xnYAFitkXVldcSddd4ZQiFTV2IluM+2HdDiJph3CKtmPi7CTCA9QF7K2d2WUAH3E2Y4P6fEjQ==}
 
   qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
@@ -2184,6 +2195,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  koishi-plugin-adapter-onebot@6.8.0(koishi@4.18.8(@cordisjs/plugin-http@0.6.3(cordis@3.18.1))(cordis@3.18.1)):
+    dependencies:
+      koishi: 4.18.8(@cordisjs/plugin-http@0.6.3(cordis@3.18.1))(cordis@3.18.1)
+      qface: 1.4.1
+
   koishi@4.18.8(@cordisjs/plugin-http@0.6.3(cordis@3.18.1))(cordis@3.18.1):
     dependencies:
       '@koishijs/core': 4.18.8
@@ -2309,6 +2325,8 @@ snapshots:
   process@0.11.10: {}
 
   punycode@2.3.1: {}
+
+  qface@1.4.1: {}
 
   qs@6.14.0:
     dependencies:
