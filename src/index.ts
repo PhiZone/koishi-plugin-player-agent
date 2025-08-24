@@ -28,12 +28,14 @@ export interface Config {
   apiBase: string;
   apiSecret: string;
   apiWebsocket: string;
+  uploadRetries: number;
 }
 
 export const Config: Schema<Config> = Schema.object({
   apiBase: Schema.string().required().description('API 地址').role('url'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
-  apiWebsocket: Schema.string().required().description('API WebSocket 地址').role('url')
+  apiWebsocket: Schema.string().required().description('API WebSocket 地址').role('url'),
+  uploadRetries: Schema.number().min(0).description('上传重试次数').default(5)
 });
 
 const getConfig = async (user: string, ctx: Context) => {
@@ -757,6 +759,7 @@ export const apply = (ctx: Context) => {
         );
         const isPrivate = event.channel.type === 1;
         const chatId = parseInt(event.channel.id);
+        const uploadRetries = ctx.config.uploadRetries;
         for (const file of run.outputFiles) {
           const tempDir = os.tmpdir();
           const tempFilePath = path.join(tempDir, Date.now().toString());
@@ -764,27 +767,41 @@ export const apply = (ctx: Context) => {
           if (!response.ok) throw new Error(`Failed to download file: ${file.url}`);
           const buffer = Buffer.from(await response.arrayBuffer());
           await fs.writeFile(tempFilePath, buffer);
-          try {
-            // Check if session.bot is an instance of OneBotBot at runtime
-            if (
-              session.bot &&
-              typeof session.bot.internal?.uploadPrivateFile === 'function' &&
-              typeof session.bot.internal?.uploadGroupFile === 'function'
-            ) {
-              const internal = (session.bot as OneBotBot<Context>).internal;
-              await (isPrivate
-                ? internal.uploadPrivateFile(chatId, tempFilePath, file.name)
-                : internal.uploadGroupFile(chatId, tempFilePath, file.name));
-            } else {
-              ctx.logger.error(
-                'Not uploading file because session.bot is not a OneBotBot implementation.'
-              );
+          let retries = 0;
+          while (retries < uploadRetries) {
+            try {
+              if (
+                session.bot &&
+                typeof session.bot.internal?.uploadPrivateFile === 'function' &&
+                typeof session.bot.internal?.uploadGroupFile === 'function'
+              ) {
+                const internal = (session.bot as OneBotBot<Context>).internal;
+                await (isPrivate
+                  ? internal.uploadPrivateFile(chatId, tempFilePath, file.name)
+                  : internal.uploadGroupFile(chatId, tempFilePath, file.name));
+              } else {
+                ctx.logger.error(
+                  'Not uploading file because session.bot is not a OneBotBot implementation.'
+                );
+              }
+              break; // success, exit retry loop
+            } catch (error) {
+              // Check for TimeoutError by name or instanceof
+              if (error?.name === 'TimeoutError' || error?.constructor?.name === 'TimeoutError') {
+                retries++;
+                ctx.logger.warn(
+                  `TimeoutError on upload, retrying (${retries}/${uploadRetries})...`
+                );
+                if (retries >= uploadRetries) {
+                  ctx.logger.error('Max retries reached for TimeoutError during upload.');
+                }
+              } else {
+                ctx.logger.error('Failed to upload file:', error);
+                break; // not a TimeoutError, do not retry
+              }
             }
-          } catch (error) {
-            ctx.logger.error('Failed to upload file:', error);
-          } finally {
-            await fs.unlink(tempFilePath);
           }
+          await fs.unlink(tempFilePath);
         }
       } else {
         await session.send(
