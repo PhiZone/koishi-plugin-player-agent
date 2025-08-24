@@ -31,11 +31,16 @@ export interface Config {
 }
 
 export const Config: Schema<Config> = Schema.object({
-  apiBase: Schema.string().required().description('API 地址').default('https://agent.phizone.cn'),
+  apiBase: Schema.string()
+    .required()
+    .description('API 地址')
+    .role('url')
+    .default('https://agent.phizone.cn'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
   apiWebsocket: Schema.string()
     .required()
     .description('API WebSocket 地址')
+    .role('url')
     .default('wss://agent.phizone.cn')
 });
 
