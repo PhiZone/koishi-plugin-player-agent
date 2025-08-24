@@ -42,10 +42,9 @@ export const configPropertyNameMapEN: Record<string, string> = {
 };
 
 export const configLocalizedNameMap: Record<string, string> = Object.fromEntries(
-  Object.entries({ ...configPropertyNameMapCN, ...configPropertyNameMapEN }).map(([path, name]) => [
-    name.toLowerCase(),
-    path
-  ])
+  [configPropertyNameMapCN, configPropertyNameMapEN].flatMap((map) =>
+    Object.entries(map).map(([path, name]) => [name.toLowerCase(), path])
+  )
 );
 
 export const getNestedProperty = (obj: unknown, path: string) => {
