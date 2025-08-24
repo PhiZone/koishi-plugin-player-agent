@@ -31,15 +31,9 @@ export interface Config {
 }
 
 export const Config: Schema<Config> = Schema.object({
-  apiBase: Schema.string()
-    .required()
-    .description('API 地址')
-    .role('url'),
+  apiBase: Schema.string().required().description('API 地址').role('url'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
-  apiWebsocket: Schema.string()
-    .required()
-    .description('API WebSocket 地址')
-    .role('url')
+  apiWebsocket: Schema.string().required().description('API WebSocket 地址').role('url')
 });
 
 const getConfig = async (user: string, ctx: Context) => {
@@ -140,7 +134,7 @@ export const apply = (ctx: Context) => {
 
     // WebSocket broadcast messages
     requestReceived:
-      '请求『{0}』正在受理！请求结束后，我们将主动向您发送通知。\n您也可以通过 progress 指令查询请求进度。{1}',
+      '请求『{0}』正在受理！请求结束后，我们将主动向您发送通知。\n您可以通过 progress 指令查询请求进度；也可以通过 cancel 指令取消本次请求。{1}',
     requestCompleted:
       'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}\n请求结果：\n{3}\n我们将把以上文件发送到聊天中。请稍等片刻。{4}',
     requestEnded: 'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}{3}',
@@ -259,7 +253,7 @@ export const apply = (ctx: Context) => {
 
     // WebSocket broadcast messages
     requestReceived:
-      'Request ｢{0}｣ is being processed! After the request is completed, we will actively send you notifications.\nYou can also check the request progress through the "progress" command. {1}',
+      'Request ｢{0}｣ is being processed! After the request is completed, we will actively send you notifications.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
     requestCompleted:
       'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\nWe will send the above files to the chat. Please wait a moment. {4}',
     requestEnded:
