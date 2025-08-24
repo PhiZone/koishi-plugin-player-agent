@@ -34,14 +34,12 @@ export const Config: Schema<Config> = Schema.object({
   apiBase: Schema.string()
     .required()
     .description('API 地址')
-    .role('url')
-    .default('https://agent.phizone.cn'),
+    .role('url'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
   apiWebsocket: Schema.string()
     .required()
     .description('API WebSocket 地址')
     .role('url')
-    .default('wss://agent.phizone.cn')
 });
 
 const getConfig = async (user: string, ctx: Context) => {
