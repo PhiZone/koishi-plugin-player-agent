@@ -28,8 +28,6 @@ export interface Config {
   apiBase: string;
   apiSecret: string;
   apiWebsocket: string;
-  ncWebsocket: string;
-  ncSecret: string;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -38,12 +36,7 @@ export const Config: Schema<Config> = Schema.object({
   apiWebsocket: Schema.string()
     .required()
     .description('API WebSocket 地址')
-    .default('wss://agent.phizone.cn'),
-  ncWebsocket: Schema.string()
-    .required()
-    .description('NapCat WebSocket 地址')
-    .default('ws://localhost:3000'),
-  ncSecret: Schema.string().required().description('NapCat WebSocket 密钥').role('secret')
+    .default('wss://agent.phizone.cn')
 });
 
 const getConfig = async (user: string, ctx: Context) => {
