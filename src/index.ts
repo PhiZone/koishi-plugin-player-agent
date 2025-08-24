@@ -35,7 +35,7 @@ export const Config: Schema<Config> = Schema.object({
   apiBase: Schema.string().required().description('API 地址').role('url'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
   apiWebsocket: Schema.string().required().description('API WebSocket 地址').role('url'),
-  uploadRetries: Schema.number().min(0).description('上传重试次数').default(5)
+  uploadRetries: Schema.number().min(0).description('上传重试次数（0 表示不上传）').default(1)
 });
 
 const getConfig = async (user: string, ctx: Context) => {
@@ -138,8 +138,10 @@ export const apply = (ctx: Context) => {
     requestReceived:
       '请求『{0}』正在受理！请求结束后，我们将主动向您发送通知。\n您可以通过 progress 指令查询请求进度；也可以通过 cancel 指令取消本次请求。{1}',
     requestCompleted:
-      'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}\n请求结果：\n{3}\n我们将把以上文件发送到聊天中。请稍等片刻。{4}',
+      'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}\n请求结果：\n{3}\n{4}',
     requestEnded: 'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}{3}',
+    requestSendFile: '我们将把以上文件发送到聊天中。请稍等片刻。{0}',
+    requestSendFileFailure: '{0} 次文件上传请求全部超时。请使用请求结果中的 URL 下载文件。{1}',
 
     // Time units
     timeSeconds: ' 秒',
@@ -257,9 +259,12 @@ export const apply = (ctx: Context) => {
     requestReceived:
       'Request ｢{0}｣ is being processed! After the request is completed, we will actively send you notifications.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
     requestCompleted:
-      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\nWe will send the above files to the chat. Please wait a moment. {4}',
+      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\n{4}',
     requestEnded:
       'PhiZone Player Agent request ended\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2} {3}',
+    requestSendFile: 'We will send the above files to the chat. Please wait a moment. {0}',
+    requestSendFileFailure:
+      'All {0} file upload request(s) timed out. Please use the URL(s) in the request results to download the file(s). {1}',
 
     // Time units
     timeSeconds: 's',
@@ -745,6 +750,7 @@ export const apply = (ctx: Context) => {
     } else if (['completed', 'failed', 'cancelled'].includes(status)) {
       if (status === 'completed') {
         const run = await client.getRun(runId, user);
+        const uploadRetries = ctx.config.uploadRetries;
         const outputText = run.outputFiles
           .map((file) => `· ${file.name.substring(run.id.length + 3)}\n  ${file.url}`)
           .join('\n');
@@ -754,12 +760,13 @@ export const apply = (ctx: Context) => {
             session.text(`status.${status}`),
             user,
             outputText,
-            h('at', { id: user })
+            uploadRetries > 0
+              ? session.text('requestSendFile', [h('at', { id: user })])
+              : h('at', { id: user })
           ])
         );
         const isPrivate = event.channel.type === 1;
         const chatId = parseInt(event.channel.id);
-        const uploadRetries = ctx.config.uploadRetries;
         for (const file of run.outputFiles) {
           const tempDir = os.tmpdir();
           const tempFilePath = path.join(tempDir, Date.now().toString());
@@ -793,7 +800,10 @@ export const apply = (ctx: Context) => {
                   `TimeoutError on upload, retrying (${retries}/${uploadRetries})...`
                 );
                 if (retries >= uploadRetries) {
-                  ctx.logger.error('Max retries reached for TimeoutError during upload.');
+                  ctx.logger.error('Max retries reached for TimeoutError during upload:', error);
+                  await session.send(
+                    session.text('requestSendFileFailure', [uploadRetries, h('at', { id: user })])
+                  );
                 }
               } else {
                 ctx.logger.error('Failed to upload file:', error);
