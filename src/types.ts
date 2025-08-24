@@ -1,4 +1,4 @@
-import { Event } from '@satorijs/protocol';
+import type { Event } from '@satorijs/protocol';
 
 export interface MediaOptions {
   frameRate: number;

@@ -1,5 +1,5 @@
 import { Context, h, Schema, Session } from 'koishi';
-import { OneBotBot } from 'koishi-plugin-adapter-onebot';
+import type { OneBotBot } from 'koishi-plugin-adapter-onebot';
 import { Room, Run, RunConfig, RunInput } from './types';
 import {
   getConfigSummary,
@@ -774,17 +774,21 @@ export const apply = (ctx: Context) => {
           const buffer = Buffer.from(await response.arrayBuffer());
           await fs.writeFile(tempFilePath, buffer);
           try {
-            await (isPrivate
-              ? (session.bot as OneBotBot<Context>).internal.uploadPrivateFile(
-                  chatId,
-                  tempFilePath,
-                  file.name
-                )
-              : (session.bot as OneBotBot<Context>).internal.uploadGroupFile(
-                  chatId,
-                  tempFilePath,
-                  file.name
-                ));
+            // Check if session.bot is an instance of OneBotBot at runtime
+            if (
+              session.bot &&
+              typeof session.bot.internal?.uploadPrivateFile === 'function' &&
+              typeof session.bot.internal?.uploadGroupFile === 'function'
+            ) {
+              const internal = (session.bot as OneBotBot<Context>).internal;
+              await (isPrivate
+                ? internal.uploadPrivateFile(chatId, tempFilePath, file.name)
+                : internal.uploadGroupFile(chatId, tempFilePath, file.name));
+            } else {
+              ctx.logger.error(
+                'Not uploading file because session.bot is not a OneBotBot implementation.'
+              );
+            }
           } catch (error) {
             ctx.logger.error('Failed to upload file:', error);
           } finally {
