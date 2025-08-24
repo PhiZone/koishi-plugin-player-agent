@@ -601,8 +601,9 @@ export const apply = (ctx: Context) => {
             }\n`
         )
         .join('');
-      await session.send(session.text('historyHeader', [pageNum, Math.ceil(total / limitNum)]));
-      await session.send(historyContent);
+      await session.send(
+        session.text('historyHeader', [pageNum, Math.ceil(total / limitNum)]) + historyContent
+      );
     });
 
   ctx
