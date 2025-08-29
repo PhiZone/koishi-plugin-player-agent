@@ -1,5 +1,6 @@
 import { Context, h, Schema, Session } from 'koishi';
 import type { OneBotBot } from 'koishi-plugin-adapter-onebot';
+import type { NCWebsocket } from 'node-napcat-ts';
 import { Room, Run, RunConfig, RunInput } from './types';
 import {
   getConfigSummary,
@@ -29,13 +30,17 @@ export interface Config {
   apiSecret: string;
   apiWebsocket: string;
   uploadRetries: number;
+  napcatWebsocket: string;
+  napcatSecret: string;
 }
 
 export const Config: Schema<Config> = Schema.object({
   apiBase: Schema.string().required().description('API 地址').role('url'),
   apiSecret: Schema.string().required().description('API 密钥').role('secret'),
   apiWebsocket: Schema.string().required().description('API WebSocket 地址').role('url'),
-  uploadRetries: Schema.number().min(0).description('上传重试次数（0 表示不上传）').default(1)
+  uploadRetries: Schema.number().min(0).description('上传重试次数（0 表示不上传）').default(1),
+  napcatWebsocket: Schema.string().description('NapCat 正向 WebSocket 地址（选填）').role('url'),
+  napcatSecret: Schema.string().description('NapCat 正向 WebSocket 密钥（选填）').role('secret')
 });
 
 const getConfig = async (user: string, ctx: Context) => {
@@ -372,6 +377,35 @@ export const apply = (ctx: Context) => {
 
   const client = new Client(ctx.config.apiBase, ctx.config.apiSecret);
 
+  let napcat: NCWebsocket | undefined = undefined;
+
+  if (ctx.config.napcatWebsocket) {
+    try {
+      const options = {
+        baseUrl: ctx.config.napcatWebsocket,
+        throwPromise: true,
+        reconnection: {
+          enable: true,
+          attempts: 10,
+          delay: 5000
+        }
+      };
+
+      // Dynamic import for ESM-only module
+      import('node-napcat-ts').then(({ NCWebsocket }) => {
+        napcat = new NCWebsocket(
+          ctx.config.napcatSecret ? { ...options, accessToken: ctx.config.napcatSecret } : options,
+          false
+        );
+        napcat.connect().then(() => {
+          ctx.logger.info('Connected to NapCat WebSocket');
+        });
+      });
+    } catch (error) {
+      ctx.logger.error('Failed to initialize NapCat WebSocket:', error);
+    }
+  }
+
   ctx.model.extend(
     'pzpAgentConfig',
     {
@@ -406,9 +440,9 @@ export const apply = (ctx: Context) => {
     if (!pendingRuns[user] || element?.type !== 'file') return;
     const isPrivate = session.event.channel.type === 1;
     const chatId = session.event.channel.id;
-    console.log(element);
+    ctx.logger.info('Received file message', element);
     const file = {
-      fileName: element.attrs.fileName,
+      fileName: element.attrs.fileName || element.attrs.file,
       fileId: element.attrs.fileId,
       chatId,
       isPrivate
@@ -778,7 +812,19 @@ export const apply = (ctx: Context) => {
           let retries = 0;
           while (retries < uploadRetries) {
             try {
-              if (
+              if (napcat) {
+                await (isPrivate
+                  ? napcat.upload_private_file({
+                      user_id: chatId,
+                      name: file.name,
+                      file: file.url
+                    })
+                  : napcat.upload_group_file({
+                      group_id: chatId,
+                      name: file.name,
+                      file: file.url
+                    }));
+              } else if (
                 session.bot &&
                 typeof session.bot.internal?.uploadPrivateFile === 'function' &&
                 typeof session.bot.internal?.uploadGroupFile === 'function'
@@ -829,5 +875,6 @@ export const apply = (ctx: Context) => {
 
   ctx.on('dispose', () => {
     socket.disconnect();
+    napcat?.disconnect();
   });
 };
