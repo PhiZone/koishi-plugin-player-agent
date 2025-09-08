@@ -1,5 +1,5 @@
 import { MediaOptions, Preferences, RunConfig, Toggles } from './types';
-import { Session } from 'koishi';
+import { observe, Session } from 'koishi';
 
 export const configPropertyNameMapCN: Record<string, string> = {
   'mediaOptions.overrideResolution': '分辨率',
@@ -73,6 +73,18 @@ export const getConfigSummary = (config: RunConfig, session: Session, full = tru
   );
 };
 
+export const getPlatform = (session: Session) => {
+  const platform = session.event.platform;
+  return platform === 'onebot' ? 'qq' : platform;
+};
+
+export const prepareSession = async (session: Session) => {
+  const channel = await session.getChannel(session.event.channel.id, ['locales']);
+  const sUser = await session.getUser(session.event.user.id, ['locales']);
+  session.channel = observe(channel, () => undefined);
+  session.user = observe(sUser, () => undefined);
+};
+
 export const getMediaOptions = (mediaOptions: MediaOptions, session: Session) => {
   const colon = session.text('configSummary.propertyColon');
   return (
@@ -105,7 +117,7 @@ export const getPreferences = (preferences: Preferences, session: Session) => {
     `\n· ${session.text('config.preferences.backgroundBlur')}${colon}${preferences.backgroundBlur}` +
     `\n· ${session.text('config.preferences.backgroundLuminance')}${colon}${preferences.backgroundLuminance}` +
     `\n· ${session.text('config.preferences.chartFlipping')}${colon}${chartFlippingText}` +
-    `\n· ${session.text('config.preferences.chartOffset')}${colon}${preferences.chartOffset}` +
+    `\n· ${session.text('config.preferences.chartOffset')}${colon}${preferences.chartOffset} ms` +
     `\n· ${session.text('config.preferences.fcApIndicator')}${colon}${preferences.fcApIndicator ? enabledText : disabledText}` +
     `\n· ${session.text('config.preferences.hitSoundVolume')}${colon}${preferences.hitSoundVolume}` +
     `\n· ${session.text('config.preferences.lineThickness')}${colon}${preferences.lineThickness}` +

@@ -9,10 +9,10 @@ export class Client {
     this.secret = secret;
   }
 
-  async getRuns(user: string, page: number, limit: number) {
+  async getRuns(prefix: string, user: string, page: number, limit: number) {
     const response = await fetch(`${this.base}/runs?user=${user}&page=${page}&limit=${limit}`, {
       headers: {
-        Authorization: `Bearer ${this.secret}`
+        Authorization: `Bearer ${prefix}/${this.secret}`
       }
     });
     if (!response.ok) {
@@ -24,10 +24,10 @@ export class Client {
     };
   }
 
-  async getRun(id: string, user: string) {
+  async getRun(id: string, prefix: string, user: string) {
     const response = await fetch(`${this.base}/runs/${id}?user=${user}`, {
       headers: {
-        Authorization: `Bearer ${this.secret}`
+        Authorization: `Bearer ${prefix}/${this.secret}`
       }
     });
     if (!response.ok) {
@@ -36,11 +36,11 @@ export class Client {
     return (await response.json()) as RunResult;
   }
 
-  async newRun(config: Run) {
+  async newRun(config: Run, prefix: string) {
     const response = await fetch(`${this.base}/runs/new`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.secret}`,
+        Authorization: `Bearer ${prefix}/${this.secret}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(config)
@@ -57,10 +57,10 @@ export class Client {
     };
   }
 
-  async getRunProgress(id: string, user: string) {
+  async getRunProgress(id: string, prefix: string, user: string) {
     const response = await fetch(`${this.base}/runs/${id}/progress?user=${user}`, {
       headers: {
-        Authorization: `Bearer ${this.secret}`
+        Authorization: `Bearer ${prefix}/${this.secret}`
       }
     });
     if (!response.ok) {
@@ -73,11 +73,11 @@ export class Client {
     };
   }
 
-  async cancelRun(id: string, user: string) {
+  async cancelRun(id: string, prefix: string, user: string) {
     const response = await fetch(`${this.base}/runs/${id}/cancel?user=${user}`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.secret}`
+        Authorization: `Bearer ${prefix}/${this.secret}`
       }
     });
     if (!response.ok) {
