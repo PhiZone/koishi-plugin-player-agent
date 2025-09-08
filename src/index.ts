@@ -98,7 +98,7 @@ export const apply = (ctx: Context) => {
     // Start command messages
     existingRequest: '当前存在受理中的请求。',
     startInstructions:
-      '您正在发起一个新的 PhiZone Player 代理（PZPA）请求。目前，PZPA 可以协助您完成谱面渲染。\n接下来，您将需要设置请求的输入，包括谱面、资源包以及代理配置。\n首先，请发送谱面相关文件（可以直接发送 ZIP 格式的谱面压缩包，也可以逐个发送谱面文件、曲目文件与曲绘文件等散装文件）。\n在发送完毕谱面相关文件后，如果希望使用自定义资源包，请发送 respack 指令并上传 1 个资源包 ZIP。\n随后，如有更改代理配置的需求，请使用 config 指令修改配置。\n一切准备就绪后，发送 submit 指令提交请求。',
+      '您正在发起一个新的 PhiZone Player 代理（PZPA）请求。目前，PZPA 可以协助您完成谱面渲染。\n接下来，您将需要设置请求的输入，包括谱面、资源包以及代理配置。\n首先，请发送谱面相关文件（可以直接发送 PEZ/ZIP 格式的谱面压缩包，也可以逐个发送谱面文件、曲目文件与曲绘文件等散装文件）。\n在发送完毕谱面相关文件后，如果希望使用自定义资源包，请发送 respack 指令并上传 1 个资源包 ZIP。\n随后，如有更改代理配置的需求，请使用 config 指令修改配置。\n一切准备就绪后，发送 submit 指令提交请求。',
     sendChartFiles: '请发送谱面相关文件。{0}',
 
     // Respack command messages
@@ -219,7 +219,7 @@ export const apply = (ctx: Context) => {
     // Start command messages
     existingRequest: 'You currently have a request in progress.',
     startInstructions:
-      'You are initiating a new PhiZone Player Agent (PZPA) request. Currently, PZPA can assist you with chart rendering.\nNext, you will need to set up the request input, including charts, resource packs, and agent configuration.\nFirst, please send chart files (you can directly send ZIP format chart archives, or send the chart, the song, and the illustration files individually).\nAfter sending all chart files, if you wish to use a custom resource pack, please send the "respack" command and upload one resource pack ZIP.\nThen, if you need to modify the agent configuration, please use the "config" command to modify the configuration.\nOnce everything is ready, send the "submit" command to submit the request.',
+      'You are initiating a new PhiZone Player Agent (PZPA) request. Currently, PZPA can assist you with chart rendering.\nNext, you will need to set up the request input, including chart files, a resource pack, and agent configuration.\nFirst, please send chart files (you can directly send PEZ/ZIP format chart archives, or send the chart, the song, and the illustration files individually).\nAfter sending all chart files, if you wish to use a custom resource pack, please send the "respack" command and upload one resource pack ZIP.\nThen, if you need to modify the agent configuration, please use the "config" command to modify the configuration.\nOnce everything is ready, send the "submit" command to submit the request.',
     sendChartFiles: 'Please send chart files. {0}',
 
     // Respack command messages
