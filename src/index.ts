@@ -270,7 +270,7 @@ export const apply = (ctx: Context) => {
 
     // WebSocket broadcast messages
     requestReceived:
-      'Request ｢{0}｣ is being processed! After the request is completed, we will actively send you notifications.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
+      'Request ｢{0}｣ is being processed! We will get you notified when it is completed.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
     requestCompleted:
       'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\n{4} {5}',
     requestEnded:
