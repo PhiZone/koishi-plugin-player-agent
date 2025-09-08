@@ -110,7 +110,7 @@ export const apply = (ctx: Context) => {
     needChartFiles: '请至少发送一个谱面文件。{0}',
     requestSummary: 'PhiZone Player 代理请求清单\n\n谱面文件：{0}\n\n资源包：{1}{2}',
     defaultRespack: '默认资源包',
-    requestSubmitted: '成功发送请求『{0}』\n队列大小：{1}\n排队时间：至少 {2}\n请求用户：{3}{4}',
+    requestSubmitted: '成功发送请求『{0}』\n队列长度：{1}\n排队时间：至少 {2}\n请求用户：{3}{4}',
 
     // Progress command messages
     noActiveRequest: '当前没有受理中的请求。',
@@ -233,7 +233,7 @@ export const apply = (ctx: Context) => {
       'PhiZone Player Agent Request Summary\n\nChart files: {0}\n\nResource pack: {1}{2}',
     defaultRespack: 'Default resource pack',
     requestSubmitted:
-      'Successfully submitted request ｢{0}｣\nQueue size: {1}\nQueue time: at least {2}\nRequest user: {3} {4}',
+      'Successfully submitted request ｢{0}｣\nQueue length: {1}\nQueue time: at least {2}\nRequest user: {3} {4}',
 
     // Progress command messages
     noActiveRequest: 'No active request currently',
