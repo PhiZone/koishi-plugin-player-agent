@@ -272,7 +272,7 @@ export const apply = (ctx: Context) => {
     requestReceived:
       'Request ｢{0}｣ is being processed! We will get you notified when it is completed.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
     requestCompleted:
-      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\n{4} {5}',
+      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\n{4}{5}',
     requestEnded:
       'PhiZone Player Agent request ended\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2} {3}',
     requestSendFile: 'We will send the above files to the chat. Please wait a moment.',
@@ -856,8 +856,10 @@ export const apply = (ctx: Context) => {
             session.text(`status.${status}`),
             user,
             outputText,
-            uploadRetries > 0 && prefix === 'qq' ? session.text('requestSendFile') : '',
-            h('at', { id: user })
+            uploadRetries > 0 && prefix === 'qq'
+              ? session.text('requestSendFile')
+              : h('at', { id: user }),
+            uploadRetries > 0 && prefix === 'qq' ? h('at', { id: user }) : ''
           ])
         );
 
