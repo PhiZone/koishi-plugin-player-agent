@@ -134,6 +134,20 @@ export const getToggles = (toggles: Toggles, session: Session) => {
   return `\n· ${session.text('config.toggles.autoplay')}${colon}${toggles.autoplay ? enabledText : disabledText}`;
 };
 
+/**
+ * Encodes all characters in a string except alphanumeric characters (A-Z, a-z, 0-9) and hyphens (-).
+ * This is more restrictive than encodeURIComponent, which leaves many characters unencoded.
+ *
+ * @param str - The string to encode
+ * @returns The encoded string with only safe characters unencoded
+ */
+export const encodeUrlSafe = (str: string): string => {
+  return str.replace(/[^A-Za-z0-9-]/g, (char) => {
+    const code = char.charCodeAt(0);
+    return '%' + code.toString(16).toUpperCase().padStart(2, '0');
+  });
+};
+
 export const toPercent = (value: number) =>
   value.toLocaleString(undefined, {
     style: 'percent',

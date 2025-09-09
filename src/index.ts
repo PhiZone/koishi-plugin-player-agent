@@ -9,7 +9,8 @@ import {
   setNestedProperty,
   toPercent,
   getPlatform,
-  prepareSession
+  prepareSession,
+  encodeUrlSafe
 } from './utils';
 import { Client } from './client';
 import { io } from 'socket.io-client';
@@ -682,7 +683,7 @@ export const apply = (ctx: Context) => {
                 ? run.outputFiles
                     .map(
                       (file) =>
-                        `· ${prefix === 'discord' ? /* Markdown doesn't work somehow `[${file.name.substring(run.id.length + 3)}](${file.url.replaceAll('_', '%5F')})` */ `${file.name.substring(run.id.length + 3)}\n  ${file.url.replaceAll('_', '%5F')}` : `${file.name.substring(run.id.length + 3)}\n  ${file.url}`}`
+                        `· ${prefix === 'discord' ? /* Markdown doesn't work somehow `[${file.name.substring(run.id.length + 3)}](${encodeUrlSafe(file.url)})` */ `${file.name.substring(run.id.length + 3)}\n  ${encodeUrlSafe(file.url)}` : `${file.name.substring(run.id.length + 3)}\n  ${file.url}`}`
                     )
                     .join('\n')
                 : session.text('noOutput')
@@ -846,7 +847,7 @@ export const apply = (ctx: Context) => {
         const outputText = run.outputFiles
           .map(
             (file) =>
-              `· ${prefix === 'discord' ? /* Markdown doesn't work somehow `[${file.name.substring(run.id.length + 3)}](${file.url.replaceAll('_', '%5F')})` */ `${file.name.substring(run.id.length + 3)}\n  ${file.url.replaceAll('_', '%5F')}` : `${file.name.substring(run.id.length + 3)}\n  ${file.url}`}`
+              `· ${prefix === 'discord' ? /* Markdown doesn't work somehow `[${file.name.substring(run.id.length + 3)}](${encodeUrlSafe(file.url)})` */ `${file.name.substring(run.id.length + 3)}\n  ${encodeUrlSafe(file.url)}` : `${file.name.substring(run.id.length + 3)}\n  ${file.url}`}`
           )
           .join('\n');
 
