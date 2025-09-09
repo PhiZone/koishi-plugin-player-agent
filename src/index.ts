@@ -149,9 +149,9 @@ export const apply = (ctx: Context) => {
     requestReceived:
       '请求『{0}』正在受理！请求结束后，我们将主动向您发送通知。\n您可以通过 progress 指令查询请求进度；也可以通过 cancel 指令取消本次请求。{1}',
     requestCompleted:
-      'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}\n请求结果：\n{3}\n{4}{5}',
+      'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求结果：\n{2}\n请求用户：{3}{4}',
     requestEnded: 'PhiZone Player 代理请求结束\n请求 ID：『{0}』\n请求状态：{1}\n请求用户：{2}{3}',
-    requestSendFile: '我们将把以上文件发送到聊天中。请稍等片刻。',
+    requestSendFile: '我们将把以上文件发送到聊天中。请稍等片刻。{0}',
     requestSendFileFailure: '{0} 次文件上传请求全部超时。请使用请求结果中的 URL 下载文件。{1}',
 
     // Time units
@@ -273,10 +273,10 @@ export const apply = (ctx: Context) => {
     requestReceived:
       'Request ｢{0}｣ is being processed! We will get you notified when it is completed.\nYou can check the request progress through the "progress" command, or cancel the request through the "cancel" command. {1}',
     requestCompleted:
-      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2}\nRequest results:\n{3}\n{4}{5}',
+      'PhiZone Player Agent request completed\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest results:\n{2}\nRequest user: {3} {4}',
     requestEnded:
       'PhiZone Player Agent request ended\nRequest ID: ｢{0}｣\nRequest status: {1}\nRequest user: {2} {3}',
-    requestSendFile: 'We will send the above files to the chat. Please wait a moment.',
+    requestSendFile: 'We will send the above files to the chat. Please wait a moment. {0}',
     requestSendFileFailure:
       'All {0} file upload request(s) timed out. Please use the URL(s) in the request results to download the file(s). {1}',
 
@@ -855,16 +855,14 @@ export const apply = (ctx: Context) => {
           session.text('requestCompleted', [
             runId,
             session.text(`status.${status}`),
-            user,
             outputText,
-            uploadRetries > 0 && prefix === 'qq'
-              ? session.text('requestSendFile')
-              : h('at', { id: user }),
-            uploadRetries > 0 && prefix === 'qq' ? h('at', { id: user }) : ''
+            user,
+            h('at', { id: user })
           ])
         );
 
         if (uploadRetries === 0 || prefix !== 'qq') return;
+        await session.sendQueued(session.text('requestSendFile', [h('at', { id: user })]));
 
         const isPrivate = event.channel.type === 1;
         const chatId = parseInt(event.channel.id);
