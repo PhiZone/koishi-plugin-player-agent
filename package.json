@@ -1,7 +1,7 @@
 {
   "name": "@phizone/koishi-plugin-player-agent",
   "description": "Koishi plugin for PhiZone Player automation.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
