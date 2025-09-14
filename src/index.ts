@@ -8,9 +8,10 @@ import {
   getNestedProperty,
   setNestedProperty,
   toPercent,
-  getPlatform,
+  toPrefix,
   prepareSession,
-  encodeUrlSafe
+  encodeUrlSafe,
+  getPlatform
 } from './utils';
 import { Client } from './client';
 import { io } from 'socket.io-client';
@@ -461,7 +462,7 @@ export const apply = (ctx: Context) => {
   };
 
   ctx.on('message', async (session) => {
-    const prefix = getPlatform(session);
+    const prefix = toPrefix(session);
     const user = session.event.user.id;
     const pUser = `${prefix}/${user}`;
     if (!pendingRuns[pUser]) return;
@@ -487,7 +488,7 @@ export const apply = (ctx: Context) => {
     .subcommand('start')
     .alias('render', '开始', '渲染', '渲', '录制', '录')
     .action(async ({ session }) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pUser = `${prefix}/${user}`;
       const { total, runs } = await client.getRuns(prefix, user, 1, 1);
@@ -521,7 +522,7 @@ export const apply = (ctx: Context) => {
     .subcommand('respack')
     .alias('res', 'resource-pack', '资源包')
     .action(({ session }) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pUser = `${prefix}/${user}`;
       if (!pendingRuns[pUser]) return session.text('startFirstRespack', [h('at', { id: user })]);
@@ -534,7 +535,7 @@ export const apply = (ctx: Context) => {
     .subcommand('submit')
     .alias('confirm', '提交', '确认')
     .action(async ({ session }) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pUser = `${prefix}/${user}`;
       if (!pendingRuns[pUser]) {
@@ -607,7 +608,7 @@ export const apply = (ctx: Context) => {
     .subcommand('progress')
     .alias('prg', '进度', '查询进度')
     .action(async ({ session }) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const { total, runs } = await client.getRuns(prefix, user, 1, 1);
       if (total === 0 || runs[0].dateCompleted) {
@@ -641,7 +642,7 @@ export const apply = (ctx: Context) => {
     .subcommand('cancel')
     .alias('abort', 'terminate', 'stop', '取消', '中止', '终止', '停止')
     .action(async ({ session }) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const { total, runs } = await client.getRuns(prefix, user, 1, 1);
       if (total === 0 || runs[0].dateCompleted) {
@@ -662,7 +663,7 @@ export const apply = (ctx: Context) => {
     .subcommand('runs [page] [limit]')
     .alias('history', '历史请求', '请求历史', '请求')
     .action(async ({ session }, page = '1', limit = '3') => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pageNum = parseInt(page);
       const limitNum = Math.min(parseInt(limit), 5);
@@ -700,7 +701,7 @@ export const apply = (ctx: Context) => {
     .subcommand('config [property] [value]')
     .alias('配置', '设置')
     .action(async ({ session }, property, value) => {
-      const prefix = getPlatform(session);
+      const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pUser = `${prefix}/${user}`;
       const config = await getConfig(prefix, user, ctx);
@@ -835,7 +836,7 @@ export const apply = (ctx: Context) => {
     const event = await ctx.database
       .get('pzpAgentRoom', pUser)
       .then((rooms) => rooms?.at(0)?.event);
-    const session = ctx.bots[0].session(event);
+    const session = ctx.bots.find((bot) => bot.platform === getPlatform(prefix)).session(event);
     await prepareSession(session);
 
     if (status === 'initializing') {

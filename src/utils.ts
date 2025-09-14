@@ -73,7 +73,16 @@ export const getConfigSummary = (config: RunConfig, session: Session, full = tru
   );
 };
 
-export const getPlatform = (session: Session) => {
+export const getPlatform = (prefix: string) => {
+  switch (prefix) {
+    case 'qq':
+      return 'onebot';
+    default:
+      return prefix;
+  }
+};
+
+export const toPrefix = (session: Session) => {
   const platform = session.event.platform;
   return platform === 'onebot' ? 'qq' : platform;
 };
