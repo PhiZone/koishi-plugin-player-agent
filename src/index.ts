@@ -807,7 +807,7 @@ export const apply = (ctx: Context) => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _, ...data } = config;
-      await ctx.database.set('pzpAgentConfig', { user: pUser }, { ...data, user });
+      await ctx.database.set('pzpAgentConfig', { user: pUser }, { ...data, user: pUser });
     });
 
   const socket = io(ctx.config.apiWebsocket);
