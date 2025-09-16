@@ -49,7 +49,7 @@ export const Config: Schema<Config> = Schema.object({
 });
 
 const getConfig = async (prefix: string, user: string, ctx: Context) => {
-  const results = await ctx.database.get('pzpAgentConfig', `${prefix}/${user}`);
+  const results = await ctx.database.get('pzpAgentConfig', { user: `${prefix}/${user}` });
 
   let config: RunConfig & { id: number };
   if (!results || results.length === 0) {
