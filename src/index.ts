@@ -711,20 +711,30 @@ export const apply = (ctx: Context) => {
         return;
       }
 
-      const pairs = segments.reduce<string[][]>((acc, seg) => {
-        if (acc.length === 0 || acc[acc.length - 1].length === 2) {
-          acc.push([seg]);
-        } else {
-          acc[acc.length - 1].push(seg);
+      const pairs = (() => {
+        const grouped: [string, string?][] = segments.reduce<[string, string?][]>((acc, seg) => {
+          if (acc.length === 0 || acc[acc.length - 1].length === 2) {
+            acc.push([seg]);
+          } else {
+            (acc[acc.length - 1] as [string, string]).push(seg);
+          }
+          return acc;
+        }, []);
+        // Ensure unique keys (last occurrence wins)
+        const map = new Map<string, string | undefined>();
+        for (const [k, v] of grouped) {
+          if (map.has(k)) map.delete(k); // move to end so last occurrence wins in ordering
+          map.set(k, v);
         }
-        return acc;
-      }, []);
+        return Array.from(map.entries()).map(([k, v]) => [k, v]) as [string, string?][];
+      })();
 
+      const messages: string[] = [];
       for (const [property, value] of pairs) {
         const propertyPath = configLocalizedNameMap[property.toLowerCase()];
         if (!propertyPath) {
-          await session.send(session.text('unknownProperty', [property]));
-          return;
+          messages.push(session.text('unknownProperty', [property]));
+          continue;
         }
 
         const currentValue = getNestedProperty(config, propertyPath);
@@ -733,7 +743,7 @@ export const apply = (ctx: Context) => {
         if (typeof currentValue === 'boolean' && !value) {
           setNestedProperty(config, propertyPath, !currentValue);
           const newValueText = currentValue ? session.text('off') : session.text('on');
-          await session.send(
+          messages.push(
             session.text('booleanToggled', [session.text(`config.${propertyPath}`), newValueText])
           );
         } else if (value) {
@@ -747,8 +757,8 @@ export const apply = (ctx: Context) => {
             if (match) {
               parsedValue = [parseInt(match[1]), parseInt(match[2])];
             } else {
-              await session.send(session.text('resolutionError'));
-              return;
+              messages.push(session.text('resolutionError'));
+              continue;
             }
           } else if (propertyPath === 'preferences.chartFlipping') {
             // Handle chart flipping options
@@ -765,15 +775,15 @@ export const apply = (ctx: Context) => {
             if (value in flippingMap) {
               parsedValue = flippingMap[value];
             } else {
-              await session.send(session.text('chartFlippingError'));
-              return;
+              messages.push(session.text('chartFlippingError'));
+              continue;
             }
           } else if (typeof currentValue === 'number') {
             // Handle numeric values
             parsedValue = parseFloat(value);
             if (isNaN(parsedValue as number)) {
-              await session.send(session.text('numberError', [value]));
-              return;
+              messages.push(session.text('numberError', [value]));
+              continue;
             }
           } else if (typeof currentValue === 'boolean') {
             // Handle boolean values
@@ -790,14 +800,14 @@ export const apply = (ctx: Context) => {
             if (value in boolMap) {
               parsedValue = boolMap[value];
             } else {
-              await session.send(session.text('booleanError'));
-              return;
+              messages.push(session.text('booleanError'));
+              continue;
             }
           }
 
           setNestedProperty(config, propertyPath, parsedValue);
           const displayValue = Array.isArray(parsedValue) ? parsedValue.join('x') : parsedValue;
-          await session.send(
+          messages.push(
             session.text('valueSet', [session.text(`config.${propertyPath}`), displayValue])
           );
         } else {
@@ -809,12 +819,14 @@ export const apply = (ctx: Context) => {
               : Array.isArray(currentValue)
                 ? currentValue.join('x')
                 : currentValue;
-          await session.send(
+          messages.push(
             session.text('currentValue', [session.text(`config.${propertyPath}`), displayValue])
           );
-          return;
+          continue;
         }
       }
+
+      await session.send(messages.join('\n'));
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _, ...data } = config;
