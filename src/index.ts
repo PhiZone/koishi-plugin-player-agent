@@ -698,111 +698,122 @@ export const apply = (ctx: Context) => {
 
   ctx
     .command('pzp-agent')
-    .subcommand('config [property] [value]')
+    .subcommand('config [...property/value]')
     .alias('配置', '设置')
-    .action(async ({ session }, property, value) => {
+    .action(async ({ session }, ...segments) => {
       const prefix = toPrefix(session);
       const user = session.event.user.id;
       const pUser = `${prefix}/${user}`;
       const config = await getConfig(prefix, user, ctx);
-      if (!property) {
+      if (!segments.length) {
         await session.send(getConfigSummary(config, session));
         await session.send(session.text('configInstructions'));
         return;
       }
 
-      const propertyPath = configLocalizedNameMap[property.toLowerCase()];
-      if (!propertyPath) {
-        await session.send(session.text('unknownProperty', [property]));
-        return;
-      }
+      const pairs = segments.reduce<string[][]>((acc, seg) => {
+        if (acc.length === 0 || acc[acc.length - 1].length === 2) {
+          acc.push([seg]);
+        } else {
+          acc[acc.length - 1].push(seg);
+        }
+        return acc;
+      }, []);
 
-      const currentValue = getNestedProperty(config, propertyPath);
-
-      // Handle boolean toggle
-      if (typeof currentValue === 'boolean' && !value) {
-        setNestedProperty(config, propertyPath, !currentValue);
-        const newValueText = currentValue ? session.text('off') : session.text('on');
-        await session.send(
-          session.text('booleanToggled', [session.text(`config.${propertyPath}`), newValueText])
-        );
-      } else if (value) {
-        // Parse and set the new value
-        let parsedValue: unknown = value;
-
-        // Special handling for different property types
-        if (propertyPath === 'mediaOptions.overrideResolution') {
-          // Handle resolution format like "1620x1080"
-          const match = value.match(/^(\d+)x(\d+)$/);
-          if (match) {
-            parsedValue = [parseInt(match[1]), parseInt(match[2])];
-          } else {
-            await session.send(session.text('resolutionError'));
-            return;
-          }
-        } else if (propertyPath === 'preferences.chartFlipping') {
-          // Handle chart flipping options
-          const flippingMap: Record<string, number> = {
-            关闭: 0,
-            off: 0,
-            水平: 1,
-            horizontal: 1,
-            竖直: 2,
-            vertical: 2,
-            水平与竖直: 3,
-            both: 3
-          };
-          if (value in flippingMap) {
-            parsedValue = flippingMap[value];
-          } else {
-            await session.send(session.text('chartFlippingError'));
-            return;
-          }
-        } else if (typeof currentValue === 'number') {
-          // Handle numeric values
-          parsedValue = parseFloat(value);
-          if (isNaN(parsedValue as number)) {
-            await session.send(session.text('numberError', [value]));
-            return;
-          }
-        } else if (typeof currentValue === 'boolean') {
-          // Handle boolean values
-          const boolMap: Record<string, boolean> = {
-            开启: true,
-            关闭: false,
-            on: true,
-            off: false,
-            true: true,
-            false: false,
-            '1': true,
-            '0': false
-          };
-          if (value in boolMap) {
-            parsedValue = boolMap[value];
-          } else {
-            await session.send(session.text('booleanError'));
-            return;
-          }
+      for (const [property, value] of pairs) {
+        const propertyPath = configLocalizedNameMap[property.toLowerCase()];
+        if (!propertyPath) {
+          await session.send(session.text('unknownProperty', [property]));
+          return;
         }
 
-        setNestedProperty(config, propertyPath, parsedValue);
-        const displayValue = Array.isArray(parsedValue) ? parsedValue.join('x') : parsedValue;
-        await session.send(
-          session.text('valueSet', [session.text(`config.${propertyPath}`), displayValue])
-        );
-      } else {
-        const displayValue =
-          typeof currentValue === 'boolean'
-            ? currentValue
-              ? session.text('on')
-              : session.text('off')
-            : Array.isArray(currentValue)
-              ? currentValue.join('x')
-              : currentValue;
-        await session.send(
-          session.text('currentValue', [session.text(`config.${propertyPath}`), displayValue])
-        );
-        return;
+        const currentValue = getNestedProperty(config, propertyPath);
+
+        // Handle boolean toggle
+        if (typeof currentValue === 'boolean' && !value) {
+          setNestedProperty(config, propertyPath, !currentValue);
+          const newValueText = currentValue ? session.text('off') : session.text('on');
+          await session.send(
+            session.text('booleanToggled', [session.text(`config.${propertyPath}`), newValueText])
+          );
+        } else if (value) {
+          // Parse and set the new value
+          let parsedValue: unknown = value;
+
+          // Special handling for different property types
+          if (propertyPath === 'mediaOptions.overrideResolution') {
+            // Handle resolution format like "1620x1080"
+            const match = value.match(/^(\d+)x(\d+)$/);
+            if (match) {
+              parsedValue = [parseInt(match[1]), parseInt(match[2])];
+            } else {
+              await session.send(session.text('resolutionError'));
+              return;
+            }
+          } else if (propertyPath === 'preferences.chartFlipping') {
+            // Handle chart flipping options
+            const flippingMap: Record<string, number> = {
+              关闭: 0,
+              off: 0,
+              水平: 1,
+              horizontal: 1,
+              竖直: 2,
+              vertical: 2,
+              水平与竖直: 3,
+              both: 3
+            };
+            if (value in flippingMap) {
+              parsedValue = flippingMap[value];
+            } else {
+              await session.send(session.text('chartFlippingError'));
+              return;
+            }
+          } else if (typeof currentValue === 'number') {
+            // Handle numeric values
+            parsedValue = parseFloat(value);
+            if (isNaN(parsedValue as number)) {
+              await session.send(session.text('numberError', [value]));
+              return;
+            }
+          } else if (typeof currentValue === 'boolean') {
+            // Handle boolean values
+            const boolMap: Record<string, boolean> = {
+              开启: true,
+              关闭: false,
+              on: true,
+              off: false,
+              true: true,
+              false: false,
+              '1': true,
+              '0': false
+            };
+            if (value in boolMap) {
+              parsedValue = boolMap[value];
+            } else {
+              await session.send(session.text('booleanError'));
+              return;
+            }
+          }
+
+          setNestedProperty(config, propertyPath, parsedValue);
+          const displayValue = Array.isArray(parsedValue) ? parsedValue.join('x') : parsedValue;
+          await session.send(
+            session.text('valueSet', [session.text(`config.${propertyPath}`), displayValue])
+          );
+        } else {
+          const displayValue =
+            typeof currentValue === 'boolean'
+              ? currentValue
+                ? session.text('on')
+                : session.text('off')
+              : Array.isArray(currentValue)
+                ? currentValue.join('x')
+                : currentValue;
+          await session.send(
+            session.text('currentValue', [session.text(`config.${propertyPath}`), displayValue])
+          );
+          return;
+        }
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
