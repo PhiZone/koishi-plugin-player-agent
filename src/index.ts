@@ -397,21 +397,34 @@ export const apply = (ctx: Context) => {
         throwPromise: true,
         reconnection: {
           enable: true,
-          attempts: 10,
+          // Retry forever. `node-napcat-ts` only ever resolves the promise returned by
+          // `connect()` from the socket's `open` handler and never rejects it, so once
+          // the attempt budget is exhausted the plugin stays disconnected for good and
+          // never recovers on its own -- it needs a manual restart.
+          attempts: Number.MAX_SAFE_INTEGER,
           delay: 5000
         }
       };
 
       // Dynamic import for ESM-only module
-      import('node-napcat-ts').then(({ NCWebsocket }) => {
-        napcat = new NCWebsocket(
-          ctx.config.napcatSecret ? { ...options, accessToken: ctx.config.napcatSecret } : options,
-          false
-        );
-        napcat.connect().then(() => {
-          ctx.logger.info('Connected to NapCat WebSocket');
+      import('node-napcat-ts')
+        .then(({ NCWebsocket }) => {
+          napcat = new NCWebsocket(
+            ctx.config.napcatSecret ? { ...options, accessToken: ctx.config.napcatSecret } : options,
+            false
+          );
+          napcat.connect().then(
+            () => {
+              ctx.logger.info('Connected to NapCat WebSocket');
+            },
+            (error) => {
+              ctx.logger.error('Failed to connect to NapCat WebSocket:', error);
+            }
+          );
+        })
+        .catch((error) => {
+          ctx.logger.error('Failed to load node-napcat-ts:', error);
         });
-      });
     } catch (error) {
       ctx.logger.error('Failed to initialize NapCat WebSocket:', error);
     }
